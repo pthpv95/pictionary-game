@@ -90,7 +90,7 @@
       };
       ctxPositions.push({...cv});
 
-      socket.emit('canvas', {id: sessionId, positions: ctxPositions});
+      socket.emit('canvas', {id: sessionId, positions: [...positions]});
       positions = [];
     }
 
@@ -124,7 +124,9 @@
       var newPos = {...pos};
       if(newPos !== pos){
         positions.push({ ...pos });
-        socket.emit('canvas', {id: sessionId, positions});
+
+        // due to performance degradation issue on drawing lines real time.
+        //socket.emit('canvas', {id: sessionId, positions});
       }
     }
 
@@ -161,11 +163,12 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         return;
       }
+      ctx.beginPath(); // begin
+      ctx.lineWidth = 5;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'black';
+
       _positions.forEach((item) => {
-        ctx.beginPath(); // begin
-        ctx.lineWidth = 5;
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = 'black';
         ctx.moveTo(_positions[0].x, _positions[0].y);
         _positions.forEach((pos, index) => {
           if(index != 0){
