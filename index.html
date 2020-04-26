@@ -40,7 +40,7 @@
       sessionStorage.setItem('id', uid());
     }
 
-    const socket = io('http://localhost:8080');
+    const socket = io();
 
     var isErasing = false;
     var ctxPositions = [];
@@ -166,8 +166,8 @@
         ctx.lineWidth = 5;
         ctx.lineCap = 'round';
         ctx.strokeStyle = 'black';
-        ctx.moveTo(item.positions[0].x, item.positions[0].y);
-        item.positions.forEach((pos, index) => {
+        ctx.moveTo(_positions[0].x, _positions[0].y);
+        _positions.forEach((pos, index) => {
           if(index != 0){
             ctx.lineTo(pos.x, pos.y);
           }
