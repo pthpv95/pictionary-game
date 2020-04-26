@@ -1,0 +1,16 @@
+{
+  "name": "pictionary-game",
+  "version": "1.0.0",
+  "main": "server.js",
+  "repository": "https://github.com/pthpv95/pictionary-game.git",
+  "author": "Hien Pham <thehienpv@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "nodemon": "^2.0.3",
+    "socket.io": "^2.3.0"
+  },
+  "scripts": {
+    "start:dev": "nodemon server.js",
+    "start": "node server.js"
+  }
+}

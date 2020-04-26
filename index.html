@@ -24,40 +24,51 @@
   <button id="clear-btn">Clear</button>
   <button id="save-btn">Save</button>
   <button id="download-btn">Download</button>
+  <button id="eraser-btn">Eraser</button>
   <div class="board" id="drawing-board">
     <canvas class="canvas" id="canvas" width="800" height="500"></canvas>
   </div>
+
+  <script src="/socket.io/socket.io.js"></script>
   <script>
+    const uid = function(){
+      return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+    
+    var sessionId = sessionStorage.getItem('id');
+    if(!sessionId){
+      sessionStorage.setItem('id', uid());
+    }
+
+    const socket = io('http://localhost:8080');
+
+    var isErasing = false;
     var ctxPositions = [];
     var positions = [];
     //var canvas = document.createElement('canvas');
     var drawingBoard = document.getElementById('drawing-board');
     var boardWidth = drawingBoard.clientWidth;
     var boardHeight = drawingBoard.clientTop;
-    // get canvas 2D context and set him correct size
+    
     var ctx = canvas.getContext('2d');
     resize();
-    // first known position
-    var startPos = {x: 0, y: 0};
+    
     // last known position
     var pos = { x: 0, y: 0 };
 
     window.addEventListener('resize', resize);
-    document.addEventListener('mousemove', draw);
+    document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mousedown', mouseDown);
     document.addEventListener('mouseenter', setPosition);
     document.addEventListener('mouseup', onMouseOut)
-    document.addEventListener('mouseover', onMousOver);
+    document.addEventListener('mouseover', onMouseOver);
 
-    function onMousOver(e){
+    function onMouseOver(e){
       if(e.target != canvas) return;
     }
     
     function mouseDown(e){
       if(e.target != canvas) return;
-
-      startPos.x = e.clientX - drawingBoard.offsetLeft;
-      startPos.y = e.clientY - drawingBoard.offsetTop;
       setPosition(e)
     }
 
@@ -66,6 +77,7 @@
       if (e.target !== canvas) {
         return;
       }
+
       pos.x = e.clientX - drawingBoard.offsetLeft;
       pos.y = e.clientY - drawingBoard.offsetTop;
     }
@@ -73,10 +85,12 @@
     function onMouseOut(e) {
       if(e.target !== canvas) return;
       const cv = {
-        id: ctxPositions.length,
+        id: sessionId,
         positions: [...positions]
       };
       ctxPositions.push({...cv});
+
+      socket.emit('canvas', {id: sessionId, positions: ctxPositions});
       positions = [];
     }
 
@@ -86,10 +100,17 @@
       ctx.canvas.height = window.innerHeight;
     }
 
+    function onMouseMove(e){
+      if(isErasing){
+        console.log('clearing');
+      }else{
+        draw(e);
+      }
+    }
+
     function draw(e) {
       // mouse left button must be pressed
       if (e.buttons !== 1) return;
-
       ctx.beginPath(); // begin
 
       ctx.lineWidth = 5;
@@ -103,14 +124,14 @@
       var newPos = {...pos};
       if(newPos !== pos){
         positions.push({ ...pos });
+        socket.emit('canvas', {id: sessionId, positions});
       }
     }
 
-    function createCanvas(){
-      var canvas = document.createElement('canvas');
-      drawingBoard.appendChild(canvas)
-      var ctx = canvas.getContext('2d');
-    }
+    var eraserBtn = document.getElementById('eraser-btn');
+    eraserBtn.addEventListener('click', function(){
+      isErasing = !isErasing;
+    });
 
     var downloadbtn = document.getElementById('download-btn');
       downloadbtn.addEventListener('click', () => {
@@ -127,42 +148,20 @@
     var btnEle = document.getElementById('clear-btn');
     btnEle.addEventListener('click', () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // ctx.clearRect(120, 0, 30, 30);
-      // ctx.clearRect(120, 30, 30, 30);
-      // ctx.clearRect(150, 0, 30, 30);
-      // ctx.clearRect(150, 30, 30, 30);
+      socket.emit('canvas', {id: sessionId, positions: []})
     });
 
     var saveBtnEle = document.getElementById('save-btn');
     saveBtnEle.addEventListener('click', () => {
-      // var canvas = document.createElement('canvas');
-      // drawingBoard.appendChild(canvas)
-      // var _ctx = canvas.getContext('2d');
+      renderCanvas(ctxPositions);
+    });
 
-      // var $context = canvas.getContext('2d');
-      // $context.beginPath()
-      // Create 4 filled squares
-      // ctx.fillStyle = 'pink';
-      // ctx.fillRect(120, 0, 30, 30);
-      // ctx.fillRect(120, 30, 30, 30);
-      // ctx.fillRect(150, 0, 30, 30);
-      // ctx.fillRect(150, 30, 30, 30);
-
-      // // Create borders around them
-      // ctx.strokeRect(120, 0, 30, 30);
-      // ctx.strokeRect(120, 30, 30, 30);
-      // ctx.strokeRect(150, 0, 30, 30);
-      // ctx.strokeRect(150, 30, 30, 30);
-
-      // Now erase the squares (individually)
-      // $context.clearRect(120, 0, 30, 30);
-      // $context.clearRect(120, 30, 30, 30);
-      // $context.clearRect(150, 0, 30, 30);
-      // $context.clearRect(150, 30, 30, 30);
-
-      
-      // var item = ctxPositions[0];
-      ctxPositions.forEach((item) => {
+    function renderCanvas(_positions){
+      if(_positions && _positions.length == 0){
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
+      _positions.forEach((item) => {
         ctx.beginPath(); // begin
         ctx.lineWidth = 5;
         ctx.lineCap = 'round';
@@ -174,8 +173,20 @@
           }
         })
         ctx.stroke();
-      }) 
+      })
+    }
+
+    // socket io
+    socket.on('news', (data) => {
+      console.log(data);
+      // socket.emit('my other event', { my: 'data' });
     });
+
+    socket.on('canvas-positions', (data) => {
+      if(data.id !== sessionId){
+        renderCanvas(data.positions);
+      }
+    })
   </script>
 </body>
 
