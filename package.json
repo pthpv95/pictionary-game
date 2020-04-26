@@ -12,5 +12,8 @@
   "scripts": {
     "start:dev": "nodemon server.js",
     "start": "node server.js"
+  },
+  "engines": {
+    "node": "12.16.0"
   }
 }
