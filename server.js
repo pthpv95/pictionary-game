@@ -1,26 +1,36 @@
 const path = require("path");
 const publicPath = path.join(__dirname, "./public");
+
 const express = require("express");
 const socketIO = require("socket.io");
 
 const app = express();
-var port = process.env.PORT || 8080;
+const port = process.env.PORT || 8080;
 
 const http = require("http");
-var server = http.createServer(app);
-var io = socketIO(server, {
+const server = http.createServer(app);
+const io = socketIO(server, {
   pingTimeout: 60000
 });
 
-io.on('connection', (socket) => {
+io.on('connect', (socket) => {
   socket.emit('news', { hello: 'world' });
   socket.on('my other event', (data) => {
     socket.emit('news', { data });
   });
 
   socket.on('canvas', (data) => {
-    io.emit('canvas-positions', data);
+    const splits = data.split('_');
+    socket.to(splits[0]).emit('canvas-positions', splits[1]);
   });
+
+  socket.on('canvas-finished', (data) => {
+    socket.to(data.roomId).emit('new-canvas-finished', 'hello everyone in room 1.');
+  });
+
+  socket.on('room', (room) => {
+    socket.join(room);
+  })
 });
 
 app.use(express.static(publicPath));
