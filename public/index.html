@@ -8,35 +8,56 @@
   <style>
     .board {
       position: relative;
-      border-style: solid;
-      border-color: black;
-      width: 1000px;
-      height: 700px;
+      /* width: 1000px; */
+      
       margin: 0 auto;
     }
-    .canvas{
+    .canvas {
       position: fixed;
+    }
+    .border-block {
+      border-style: solid;
+      border-color: black;
+      height: 700px;
+    }
+    .chat-box{
+      position: absolute;
+      bottom: 0;
+      right: 0;
     }
   </style>
 </head>
-
 <body>
   <h2 style="text-align: center;">Pictionary game</h2>
-  <div>
+  <div class="row"></div>
+  <div class="container">
     <button id="clear-btn">Clear</button>
     <button id="save-btn">Save</button>
-  </div>
-  <div>
     <button id="download-btn">Download</button>
     <button id="eraser-btn">Eraser</button>
   </div>
-  <div class="board" id="drawing-board"></div>
-  <div class="colors-board" id="colors-board"></div>
+  <div class="row"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col border-block">
+        friends
+      </div>
+      <div class="col-8 border-block" id="drawing-board"></div>
+      <div class="col border-block">
+        <div>
 
+        </div>
+        chat
+        <input type="text" class="chat-box"/>
+      </div>
+    </div>
+  </div>
+  <!-- <div class="board" id="drawing-board"></div> -->
+  <div class="colors-board" id="colors-board"></div>
   <script src="/socket.io/socket.io.js"></script>
   <script src="./libs/utils.js"></script>
   <script src="./libs/canvas.js"></script>
-
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
   <script>
     (function(canvasModule){
       'use strict';

@@ -5,6 +5,7 @@ var canvasModule = (function(){
   var isErasing = false;
   var ctxPositions = [];
   var positions = [];
+  var drawing = false;
 
   var drawingBoard = document.getElementById('drawing-board');
   var canvas = document.createElement('canvas');
@@ -28,7 +29,30 @@ var canvasModule = (function(){
   document.addEventListener('mouseup', onMouseOut)
   document.addEventListener('mouseover', onMouseOver);
 
-  document.addEventListener('touchmove', onMove)
+  // Prevent scrolling when touching the canvas
+  document.body.addEventListener("touchstart", function (e) {
+    if (e.target == canvas) {
+      e.preventDefault();
+    }
+  }, false);
+  document.body.addEventListener("touchend", function (e) {
+    if (e.target == canvas) {
+      e.preventDefault();
+    }
+  }, false);
+  document.body.addEventListener("touchmove", function (e) {
+    if (e.target == canvas) {
+      e.preventDefault();
+    }
+  }, false);
+
+  canvas.addEventListener('touchstart', function(e){
+    draw(e);
+  });
+
+  canvas.addEventListener('touchmove', function(e){
+    draw(e);
+  });
 
   function onMouseOver(e){
     if(e.target != canvas) return;
@@ -98,7 +122,7 @@ var canvasModule = (function(){
     if(newPos !== pos){
       var payload = `${roomId}_${pos.x}.${pos.y}`;
       socket.emit('canvas', payload);
-      ctxPositions.push({from, to: newPos});
+      ctxPositions.push(payload)
     }
   }
 
